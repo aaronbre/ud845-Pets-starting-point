@@ -16,11 +16,11 @@ public final class PetContract {
         public static final String TABLE_NAME = "pets";
 
         //table columns
-        public static final String COLUMN_NAME_ID = BaseColumns._ID;
-        public static final String COLUMN_NAME_NAME = "name";
-        public static final String COLUMN_NAME_BREED = "breed";
-        public static final String COLUMN_NAME_GENDER = "gender";
-        public static final String COLUMN_NAME_WEIGHT = "weight";
+        public static final String _ID = BaseColumns._ID;
+        public static final String COLUMN_PET_NAME = "name";
+        public static final String COLUMN_PET_BREED = "breed";
+        public static final String COLUMN_PET_GENDER = "gender";
+        public static final String COLUMN_PET_WEIGHT = "weight";
 
         //possible gender values
         public static final int GENDER_MALE = 1;
