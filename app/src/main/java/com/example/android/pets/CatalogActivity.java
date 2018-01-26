@@ -58,7 +58,19 @@ public class CatalogActivity extends AppCompatActivity {
 
         // Perform this raw SQL query "SELECT * FROM pets"
         // to get a Cursor that contains all rows from the pets table.
-        Cursor cursor = mDb.rawQuery("SELECT * FROM " + PetEntry.TABLE_NAME, null);
+        String[] projection = getProjection();
+        //String[] selection = getSelection();
+        //String[] SelectionArgs = getSelectionArgs();
+        String sortOrder = PetEntry.COLUMN_PET_NAME + " DESC";
+        Cursor cursor = mDb.query(
+                PetEntry.TABLE_NAME,
+                projection,
+                null,
+                null,
+                null,
+                null,
+                sortOrder
+        );
         try {
             // Display the number of rows in the Cursor (which reflects the number of rows in the
             // pets table in the database).
@@ -70,6 +82,30 @@ public class CatalogActivity extends AppCompatActivity {
             cursor.close();
         }
     }
+
+    /**
+     * function to get the projection array - in this case it is simple...
+     * @return
+     */
+    private String[] getProjection(){
+        return new String[]{PetEntry.COLUMN_PET_BREED, PetEntry.COLUMN_PET_GENDER};
+    }
+
+    /**
+     * Function to get the selection - simple for now
+     * @return
+     */
+    private String getSelection(){
+        return "";
+    }
+
+    /**
+     * Function to get the selectionArgs - simple for now
+     * @return
+     */
+//    private String[] getSelectionArgs(){
+//        return "";
+//    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
