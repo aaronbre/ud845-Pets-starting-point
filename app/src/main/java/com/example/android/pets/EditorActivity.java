@@ -15,6 +15,8 @@
  */
 package com.example.android.pets;
 
+import android.content.ContentValues;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
@@ -26,8 +28,10 @@ import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
-import com.example.android.pets.data.PetContract;
+import com.example.android.pets.data.PetContract.PetEntry;
+import com.example.android.pets.data.PetDbHelper;
 
 /**
  * Allows user to create a new pet or edit an existing one.
@@ -51,6 +55,10 @@ public class EditorActivity extends AppCompatActivity {
      * 0 for unknown gender, 1 for male, 2 for female.
      */
     private int mGender = 0;
+
+    //Database helper variables
+    PetDbHelper mDbHelper;
+    SQLiteDatabase mDb;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,11 +96,11 @@ public class EditorActivity extends AppCompatActivity {
                 String selection = (String) parent.getItemAtPosition(position);
                 if (!TextUtils.isEmpty(selection)) {
                     if (selection.equals(getString(R.string.gender_male))) {
-                        mGender = PetContract.PetEntry.GENDER_MALE; // Male
+                        mGender = PetEntry.GENDER_MALE; // Male
                     } else if (selection.equals(getString(R.string.gender_female))) {
-                        mGender = PetContract.PetEntry.GENDER_FEMALE; // Female
+                        mGender = PetEntry.GENDER_FEMALE; // Female
                     } else {
-                        mGender = PetContract.PetEntry.GENDER_UNKNOWN; // Unknown
+                        mGender = PetEntry.GENDER_UNKNOWN; // Unknown
                     }
                 }
             }
@@ -103,6 +111,57 @@ public class EditorActivity extends AppCompatActivity {
                 mGender = 0; // Unknown
             }
         });
+    }
+
+    /**
+     * function to add the new pet to the db
+     */
+    private void insertPet(){
+        //get values to add to database
+        String petName = mNameEditText.getText().toString().trim();
+        String petBreed = mBreedEditText.getText().toString().trim();
+        int petGender = mGender;
+        Integer petWeight = getWeight();
+
+        if(petName.isEmpty() || petWeight == null){
+            Toast.makeText(this, "ERROR invalid entry, where all fields completed", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        //create a ContentValues object occupied by those contents
+        ContentValues values = setUpValues(petName, petBreed, petGender, petWeight);
+        //add the values to the database, and get back the id
+        long id = addToDatabase(values);
+        //display the id to the user
+        if (id >= 0) Toast.makeText(this, "Id of added pet is " + id, Toast.LENGTH_SHORT).show();
+        else Toast.makeText(this, "Error adding to database", Toast.LENGTH_SHORT);
+    }
+
+    private ContentValues setUpValues(String name, String breed, int gender, int weight){
+        ContentValues values = new ContentValues();
+        values.put(PetEntry.COLUMN_PET_NAME, name);
+        values.put(PetEntry.COLUMN_PET_BREED, breed);
+        values.put(PetEntry.COLUMN_PET_GENDER, gender);
+        values.put(PetEntry.COLUMN_PET_WEIGHT, weight);
+
+        return values;
+    }
+
+    private long addToDatabase(ContentValues values){
+        //check that the helper and db were initialized if not do so here
+        if (mDbHelper == null) mDbHelper = new PetDbHelper(EditorActivity.this);
+        if(mDb == null) mDb = mDbHelper.getWritableDatabase();
+        //insert the values object into the database
+        return mDb.insert(PetEntry.TABLE_NAME, null, values);
+    }
+
+    private Integer getWeight(){
+        Integer weight;
+        try{
+            weight = Integer.parseInt(mWeightEditText.getText().toString().trim());
+            return weight;
+        }catch (NumberFormatException e){
+            return null;
+        }
     }
 
     @Override
@@ -119,7 +178,9 @@ public class EditorActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             // Respond to a click on the "Save" menu option
             case R.id.action_save:
-                // Do nothing for now
+                // add to the database and send back to previous screen
+                insertPet();
+                finish();
                 return true;
             // Respond to a click on the "Delete" menu option
             case R.id.action_delete:
