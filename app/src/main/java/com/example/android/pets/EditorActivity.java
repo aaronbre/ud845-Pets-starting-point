@@ -120,6 +120,7 @@ public class EditorActivity extends AppCompatActivity {
         //get values to add to database
         String petName = mNameEditText.getText().toString().trim();
         String petBreed = mBreedEditText.getText().toString().trim();
+        if (petBreed.isEmpty()) petBreed = "Breed Unkown";
         int petGender = mGender;
         Integer petWeight = getWeight();
 
