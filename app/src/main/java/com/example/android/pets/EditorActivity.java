@@ -17,6 +17,7 @@ package com.example.android.pets;
 
 import android.content.ContentValues;
 import android.database.sqlite.SQLiteDatabase;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NavUtils;
 import android.support.v7.app.AppCompatActivity;
@@ -55,10 +56,6 @@ public class EditorActivity extends AppCompatActivity {
      * 0 for unknown gender, 1 for male, 2 for female.
      */
     private int mGender = 0;
-
-    //Database helper variables
-    PetDbHelper mDbHelper;
-    SQLiteDatabase mDb;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -120,21 +117,21 @@ public class EditorActivity extends AppCompatActivity {
         //get values to add to database
         String petName = mNameEditText.getText().toString().trim();
         String petBreed = mBreedEditText.getText().toString().trim();
-        if (petBreed.isEmpty()) petBreed = "Breed Unkown";
+        // if breed is empty add default text Breed Unkown
+        if (petBreed.isEmpty()) petBreed = getString(R.string.breed_unknown);
         int petGender = mGender;
         Integer petWeight = getWeight();
 
         if(petName.isEmpty() || petWeight == null){
-            Toast.makeText(this, "ERROR invalid entry, where all fields completed", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, getString(R.string.invalid_entries_database_add_toast), Toast.LENGTH_SHORT).show();
             return;
         }
         //create a ContentValues object occupied by those contents
         ContentValues values = setUpValues(petName, petBreed, petGender, petWeight);
-        //add the values to the database, and get back the id
-        long id = addToDatabase(values);
+        Uri uri = getContentResolver().insert(PetEntry.CONTENT_URI, values);
         //display the id to the user
-        if (id >= 0) Toast.makeText(this, "Id of added pet is " + id, Toast.LENGTH_SHORT).show();
-        else Toast.makeText(this, "Error adding to database", Toast.LENGTH_SHORT);
+        if (uri != null) Toast.makeText(this, getString(R.string.successfull_database_add_toast) , Toast.LENGTH_SHORT).show();
+        else Toast.makeText(this, getString(R.string.unsuccessfull_database_add_toast), Toast.LENGTH_SHORT).show();
     }
 
     private ContentValues setUpValues(String name, String breed, int gender, int weight){
@@ -145,14 +142,6 @@ public class EditorActivity extends AppCompatActivity {
         values.put(PetEntry.COLUMN_PET_WEIGHT, weight);
 
         return values;
-    }
-
-    private long addToDatabase(ContentValues values){
-        //check that the helper and db were initialized if not do so here
-        if (mDbHelper == null) mDbHelper = new PetDbHelper(EditorActivity.this);
-        if(mDb == null) mDb = mDbHelper.getWritableDatabase();
-        //insert the values object into the database
-        return mDb.insert(PetEntry.TABLE_NAME, null, values);
     }
 
     private Integer getWeight(){

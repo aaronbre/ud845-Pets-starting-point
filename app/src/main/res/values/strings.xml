@@ -58,4 +58,16 @@
 
     <!-- Label for dropdown menu option if the pet is female [CHAR LIMIT=20] -->
     <string name="gender_female">Female</string>
+
+    <!--String for unknown Breed-->
+    <string name="breed_unknown">Breed Unknown</string>
+
+    <!--String for succesfull add to database toast-->
+    <string name="successfull_database_add_toast">Successfully added pet to database</string>
+
+    <!--String for unsuccesfull database add-->
+    <string name="unsuccessfull_database_add_toast">Error adding to database</string>
+
+    <!--String for invalid entries for pet toast-->
+    <string name="invalid_entries_database_add_toast">ERROR invalid entry, where all fields completed?</string>
 </resources>

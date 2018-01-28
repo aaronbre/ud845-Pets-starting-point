@@ -22,9 +22,6 @@ import com.example.android.pets.data.PetDbHelper;
  */
 public class CatalogActivity extends AppCompatActivity {
 
-    PetDbHelper mDbHelper;
-    SQLiteDatabase mDb;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,8 +37,6 @@ public class CatalogActivity extends AppCompatActivity {
             }
         });
 
-        mDbHelper = new PetDbHelper(this);
-        mDb = mDbHelper.getWritableDatabase();
     }
 
     @Override
@@ -63,15 +58,9 @@ public class CatalogActivity extends AppCompatActivity {
         //String[] selection = getSelection();
         //String[] SelectionArgs = getSelectionArgs();
         String sortOrder = PetEntry._ID + " ASC";
-        Cursor cursor = mDb.query(
-                PetEntry.TABLE_NAME,
-                projection,
-                null,
-                null,
-                null,
-                null,
-                sortOrder
-        );
+
+        Cursor cursor = getContentResolver().query(PetEntry.CONTENT_URI, projection, null, null, sortOrder);
+
         try {
             // Display the number of rows in the Cursor (which reflects the number of rows in the
             // pets table in the database).
@@ -106,7 +95,12 @@ public class CatalogActivity extends AppCompatActivity {
      * @return
      */
     private String[] getProjection(){
-        return new String[]{PetEntry._ID, PetEntry.COLUMN_PET_BREED, PetEntry.COLUMN_PET_GENDER, PetEntry.COLUMN_PET_NAME, PetEntry.COLUMN_PET_WEIGHT};
+        return new String[]{
+                PetEntry._ID,
+                PetEntry.COLUMN_PET_BREED,
+                PetEntry.COLUMN_PET_GENDER,
+                PetEntry.COLUMN_PET_NAME,
+                PetEntry.COLUMN_PET_WEIGHT};
     }
 
     /**
@@ -154,7 +148,7 @@ public class CatalogActivity extends AppCompatActivity {
         switch (item.getItemId()) {
             // Respond to a click on the "Insert dummy data" menu option
             case R.id.action_insert_dummy_data:
-                // Do nothing for now
+                // insert a dummy pet into the database
                 insertDummyData();
                 return true;
             // Respond to a click on the "Delete all entries" menu option
@@ -172,7 +166,7 @@ public class CatalogActivity extends AppCompatActivity {
         values.put(PetEntry.COLUMN_PET_GENDER, PetEntry.GENDER_MALE);
         values.put(PetEntry.COLUMN_PET_WEIGHT, 7);
 
-        mDb.insert(PetEntry.TABLE_NAME, null, values);
+        getContentResolver().insert(PetEntry.CONTENT_URI, values);
         displayDatabaseInfo();
     }
 }
