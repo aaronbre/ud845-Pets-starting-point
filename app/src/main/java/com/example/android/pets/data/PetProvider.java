@@ -164,6 +164,7 @@ public class PetProvider extends ContentProvider {
 
     private int updatePet(Uri uri, ContentValues values, String selection, String[] selectionArgs){
         SQLiteDatabase database = mDbHelper.getWritableDatabase();
+        getContext().getContentResolver().notifyChange(uri, null);
         return database.update(PetEntry.TABLE_NAME, values, selection, selectionArgs);
     }
 
