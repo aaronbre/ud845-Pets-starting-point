@@ -1,31 +1,32 @@
 package com.example.android.pets;
 
+import android.app.LoaderManager;
 import android.content.ContentValues;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
 import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ListView;
-import android.widget.TextView;
 
-import com.example.android.pets.data.PetContract;
 import com.example.android.pets.data.PetContract.PetEntry;
-import com.example.android.pets.data.PetDbHelper;
 
 /**
  * Displays list of pets that were entered and stored in the app.
  */
-public class CatalogActivity extends AppCompatActivity {
+public class CatalogActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+
+    private final int PET_LOADER = 1;
 
     ListView mListView;
-    PetCursorAdapter cursorAdapter;
+    PetCursorAdapter mCursorAdapter;
     Cursor mCursor;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,64 +46,17 @@ public class CatalogActivity extends AppCompatActivity {
         mListView = (ListView)findViewById(R.id.pets_list_view);
         View emptyView = findViewById(R.id.empty_view);
         mListView.setEmptyView(emptyView);
+
+        // set up the adaptor to a new petCursorAdapter, set it to null for now will be occupied by the cursorLoader
+        mCursorAdapter = new PetCursorAdapter(this, null);
+
+        //set the listView's adapter to the new petCursorAdapter
+        mListView.setAdapter(mCursorAdapter);
+
+        //initialize the cursor loader
+        getLoaderManager().initLoader(PET_LOADER, null, this);
+
     }
-
-    @Override
-    protected void onStart(){
-        super.onStart();
-        displayDatabaseInfo();
-    }
-
-
-    /**
-     * Temporary helper method to display information in the onscreen TextView about the state of
-     * the pets database.
-     */
-    private void displayDatabaseInfo() {
-
-        // Perform this raw SQL query "SELECT * FROM pets"
-        // to get a Cursor that contains all rows from the pets table.
-        String[] projection = getProjection();
-        //String[] selection = getSelection();
-        //String[] SelectionArgs = getSelectionArgs();
-        String sortOrder = PetEntry._ID + " ASC";
-
-        // get the data from the content provider and store it in the global cursor object (probably does not need to be global...)
-        mCursor = getContentResolver().query(PetEntry.CONTENT_URI, projection, null, null, sortOrder);
-        // create a new cursor adapter using the cursor data returned by the content provider
-        cursorAdapter = new PetCursorAdapter(CatalogActivity.this, mCursor);
-        // set the cursor adaptor to be the adaptor of the list view
-        mListView.setAdapter(cursorAdapter);
-    }
-
-    /**
-     * function to get the projection array - in this case it is simple...
-     * @return
-     */
-    private String[] getProjection(){
-        return new String[]{
-                PetEntry._ID,
-                PetEntry.COLUMN_PET_BREED,
-                PetEntry.COLUMN_PET_GENDER,
-                PetEntry.COLUMN_PET_NAME,
-                PetEntry.COLUMN_PET_WEIGHT};
-    }
-
-    /**
-     * Function to get the selection - simple for now
-     * @return
-     */
-    private String getSelection(){
-        return "";
-    }
-
-    /**
-     * Function to get the selectionArgs - simple for now
-     * @return
-     */
-//    private String[] getSelectionArgs(){
-//        return "";
-//    }
 
     private String genderToString(int genderNum){
         String gender;
@@ -152,6 +106,44 @@ public class CatalogActivity extends AppCompatActivity {
         values.put(PetEntry.COLUMN_PET_WEIGHT, 7);
 
         getContentResolver().insert(PetEntry.CONTENT_URI, values);
-        displayDatabaseInfo();
+    }
+
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int loaderId, Bundle bundle) {
+        switch (loaderId){
+            case PET_LOADER:
+                return new CursorLoader(
+                        CatalogActivity.this,
+                        PetEntry.CONTENT_URI,
+                        getProjection(),
+                        null,
+                        null,
+                        null
+                );
+            default:
+                return null;
+        }
+    }
+
+    /**
+     * function to get the projection array - in this case it is simple...
+     * @return
+     */
+    private String[] getProjection(){
+        return new String[]{
+                PetEntry._ID,
+                PetEntry.COLUMN_PET_BREED,
+                PetEntry.COLUMN_PET_NAME,};
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor cursor) {
+        mCursorAdapter.swapCursor(cursor);
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        mCursorAdapter.swapCursor(null);
     }
 }

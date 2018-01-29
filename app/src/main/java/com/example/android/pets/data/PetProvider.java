@@ -88,6 +88,7 @@ public class PetProvider extends ContentProvider {
             default:
                 throw new IllegalArgumentException("Cannot query unknown URI " + uri);
         }
+        cursor.setNotificationUri(getContext().getContentResolver(), uri);
         return cursor;
     }
 
@@ -116,6 +117,7 @@ public class PetProvider extends ContentProvider {
             }
             // Once we know the ID of the new row in the table,
             // return the new URI with the ID appended to the end of it
+            getContext().getContentResolver().notifyChange(uri, null);
             return ContentUris.withAppendedId(uri, id);
         }
         return null;
@@ -174,10 +176,12 @@ public class PetProvider extends ContentProvider {
         final int match = sUriMatcher.match(uri);
         switch (match){
             case PETS:
+                getContext().getContentResolver().notifyChange(uri, null);
                 return database.delete(PetEntry.TABLE_NAME, selection, selectionArgs);
             case PET_ID:
                 selection = PetEntry._ID + "=?";
                 selectionArgs = new String[] {String.valueOf(ContentUris.parseId(uri))};
+                getContext().getContentResolver().notifyChange(uri, null);
                 return database.delete(PetEntry.TABLE_NAME, selection, selectionArgs);
             default:
                 throw new IllegalArgumentException("Delete not allowed for " + uri);
